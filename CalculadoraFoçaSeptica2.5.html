@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foça septica</title>
+    <style>
+        .Formulario{
+                    border:1px solid rgb(0, 0, 0);
+                    display:block;
+                    font-size: 20px;
+                    padding: 5px;
+                    margin: 5px;   
+                    height: 1000px;
+                    width: 500px;        
+                }
+         .display{
+                    font: normal 20pt Arial;
+                    border: none;
+                    display:flexbox; 
+                    height: 1000px;
+                    width: 1000px; 
+                }
+                .container .box {
+                    width:540px;
+                    margin:50px;
+                    display:table;
+                }
+                .container .box .box-row {
+                    display:flex;
+                }
+                .container .box .box-cell {
+                    display:table-cell;
+                    padding:0px;
+                }
+                canvas { 
+                    border: 1px solid rgb(0, 0, 0); 
+                    background-color: rgb(255, 255, 255);
+                    }
+                body{
+                background-color: rgb(255, 255, 255);
+                }
+
+    </style>
+</head>
+<body>
+        <div class="container">
+           <div class="box">
+                <div class="box-row">
+                    <div class="box-cell box1">
+                        <div class="Formulario">
+                          <h1>Calculadora de fossa séptica<h1></p>
+                            <h2>Parâmetros de cálculo</h2>
+                        <p>Número de pessoas ou unidades de
+                        contribuição:<input type="number" id="Numero" value="N"></p>
+                        <p>Tipo de prédio:<select id="tipo de predio">
+                        <optgroup label="Ocupantes permanentes"></optgroup>
+                        <option value="alto">Residencia padrão alto</option>
+                        <option value="medio">Residencia padrão médio</option>
+                        <option value="baixo">Residencia padrão baixo</option>   
+                        <option value="hotel"><n>Hotel (exceto lavanderia e cozinha)</n></option>
+                        <option value="alojamento provisorio">Alojamento provisório</option>
+                        <optgroup label="Ocupantes temporários"></optgroup>
+                        <option value="fabrica em geral">Fábrica em geral</option>
+                        <option value="escritorio">Escritório</option>
+                        <option value="edcomerciais">Edifícios públicos ou comerciais</option>
+                        <option value="longapermanencia">Escolas (externatos) e locais de longa
+                            permanência</option>
+                        <option value="bares">Bares</option>
+                        <option value="restaurantes e similares">Restaurantes e similares</option>
+                        <option value="cinemasteatros">Cinemas, teatros e locais de curta permanência</option>
+                        <option value="sanitariospublicos">Sanitários públicos(A)</option>    
+                        </select>
+                        <p>Média de temperatura do mês mais frio:
+                            <select id="mediat">
+                                <option value="t=<10"> menor que 10°C</option>
+                                <option value="11=<t=<20"> entre 10°C e 20°C</option>
+                                <option value="t>20"> maior que 20°C</option>
+                            </select>
+                        </p>
+                        <p>Intervalo entre limpezas (anos): 
+                            <select id="limpezas">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </p>
+                        <input type="button" value="calcular" onclick="calculo()">
+                        </p>
+                            <h2>Parâmetros de projeto</h2>
+                            <p>Geometria dos tanques<select id="Geometria dos tanques">
+                                <option value="retangulo">retangular</option>
+                                <option value="circulo">circular</option>
+                            </select></p>
+                            <p>Espessura do tanque:
+                                <select id="θ">
+                                    <optgroup label="Alvenaria de tijolo inteiro:"></optgroup>
+                                    <option value=20>20cm</option>
+                                    <option value=21>21cm</option>
+                                    <option value=22>22cm</option>
+                                    <optgroup label="concreto armado"></optgroup>
+                                    <option value=8>8cm</option>
+                                    <option value=9>9cm</option>
+                                    <option value=10>10cm</option>
+                                </select>
+                            </p>
+                            <p>Câmaras em série:
+                              <select id="camaras">
+                                <option value="1">Apenas uma câmara</option>
+                                <optgroup label="Tanques cilindricos:"></optgroup>
+                                <option value="3">:Três câmaras em série</option>
+                                <optgroup label="Tanques prismáticos retangulares:"></optgroup>
+                                <option value="2">:Duas câmaras em série.</option>  
+                              </select>
+                            </p>
+                            <p>Snap<input name="snap" id="snap" type="range"  min="1" value="0" max="10" list="ticks" oninput="Output.value = snap.value"list="tickmarks" >
+                                <datalist id="tickmarks">
+                                <option value="1">
+                                 <option value="5">
+                                <option value="10">
+                                </datalist> 
+                                <output id="Output">1</output></p>
+                        </p>
+                        <div class="coordenadas">
+                            <div id="area">0</div></p>
+                        </div>   
+                        </div>
+                        <h3> NBR 7229:1993 Projeto, construção e operação de
+                          sistemas de tanques sépticos<h3></h3>
+                    </div>
+                        <div class="box-cell box2">
+                            <canvas id="canvas" onclick="clicar()" onmouseenter="entrar()" onmouseout="sair()" onmousemove="moveu()" width="1000" height="1000"></canvas>
+                        </div>
+                        </div>
+                </div>
+            </div>       
+        </div>
+    <script>
+        
+        var a = window.document.getElementById('area');
+        a.addEventListener('click',clicar);
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        var pontosx=[];
+        var pontosy=[];
+        var cont2=0
+        var click=1
+        var contclick=0
+        var p1=0
+        var p2=0
+        var Δytest
+        var Δx
+        var Δy1
+        var Δy2
+        var hmin
+        var hmax
+        var V=0 
+
+        function calculo(){
+          if(document.getElementById("Geometria dos tanques").value==="circulo" && document.getElementById("camaras").value==="2"){document.getElementById("camaras").value="3";}
+          if(document.getElementById("Geometria dos tanques").value==="retangulo" && document.getElementById("camaras").value==="3"){document.getElementById("camaras").value="2";}
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+          var limpando=pontosx.pop();
+
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+          var limpando=pontosy.pop();
+            var N= document.getElementById('Numero').value;
+            if(N!=Number && N<=0){
+               N=1
+            }
+            //- Contribuição diária de esgoto (C) e de lodo fresco (Lf) por tipo de prédio e de ocupante
+            if(document.getElementById('tipo de predio').value==='alto'){
+
+                var unidade="pessoas";
+                var C=160;
+                var Lf=1;
+               
+            }
+            if(document.getElementById('tipo de predio').value==="medio"){
+            
+                var unidade="pessoas";
+                var C=130;
+                var Lf=1;
+               
+            }
+            if(document.getElementById('tipo de predio').value==="baixo"){
+            
+                var unidade="pessoas";
+                var C=100;
+                var Lf=1;
+               
+            }
+            if(document.getElementById('tipo de predio').value==="hotel"){
+                
+                var unidade="pessoas";
+                var C=100;
+                var Lf=1;
+               
+            }
+            if(document.getElementById('tipo de predio').value==="alojamento provisorio"){
+              
+                var unidade="pessoas";
+                var C=80;
+                var Lf=1;
+               
+            }  
+            if(document.getElementById('tipo de predio').value==="fabrica em geral"){
+              
+                var unidade="pessoas";
+                var C=70;
+                var Lf=0.3;
+               
+            } 
+            if(document.getElementById('tipo de predio').value==="escritorio"){
+               
+                var unidade="pessoas";
+                var C=50;
+                var Lf=0.2;
+               
+            } 
+            if(document.getElementById('tipo de predio').value==="edcomerciais"){
+              
+                var unidade="pessoas";
+                var C=50;
+                var Lf=0.2;
+               
+            } 
+            if(document.getElementById('tipo de predio').value==="longapermanencia"){
+              
+                var unidade="pessoas";
+                var C=50;
+                var Lf=0.2;
+               
+            } 
+            if(document.getElementById('tipo de predio').value==="bares"){
+               
+                var unidade="pessoas";
+                var C=6;
+                var Lf=0.1;
+                
+            } 
+            if(document.getElementById('tipo de predio').value==="restaurantes e similares"){
+                
+                var unidade="refeiçao";
+                var C=25;
+                var Lf=0.1;
+
+            } 
+            if(document.getElementById('tipo de predio').value==="cinemasteatros"){
+                
+                var unidade="lugar";
+                var C=2;
+                var Lf=0.02;
+            } 
+            if(document.getElementById('tipo de predio').value==="sanitariospublicos"){
+    
+                var unidade="bacia sanitária";
+                var C=480;
+                var Lf=4;
+            } 
+            
+          //- Período de detenção dos despejos, por faixa de contribuição diária
+          var contribuiçaodiaria= C*N;
+          if(contribuiçaodiaria<=1500){
+            var Tdias=1
+            var Thoras=24
+          }
+          if(contribuiçaodiaria>1500 && contribuiçaodiaria<=3000){
+            var Tdias=0.92
+            var Thoras=22
+          }
+          if(contribuiçaodiaria>3000 && contribuiçaodiaria<=4500){
+            var Tdias=0.83
+            var Thoras=20
+          }
+          if(contribuiçaodiaria>4500 && contribuiçaodiaria<=6000){
+            var Tdias=0.75
+            var Thoras=18
+          }
+          if(contribuiçaodiaria>6000 && contribuiçaodiaria<=7500){
+            var Tdias=0.67
+            var Thoras=16
+          }
+          if(contribuiçaodiaria>7500 && contribuiçaodiaria<=9000){
+            var Tdias=0.58
+            var Thoras=14
+          }
+          if(contribuiçaodiaria>9000){
+            var Tdias=0.5
+            var Thoras=12
+          }
+          
+
+          //- Taxa de acumulação total de lodo (K),em dias, por intervalo entre limpezas e temperatura do mês mais frio
+          if(document.getElementById('mediat').value==="t=<10"){
+           K=54+document.getElementById('limpezas').value*40
+          }
+          if(document.getElementById('mediat').value==="11=<t=<20"){
+            K=25+document.getElementById('limpezas').value*40
+          }
+          if(document.getElementById('mediat').value==="t>20"){
+            K=17+document.getElementById('limpezas').value*40
+          }
+          //Calculo de volume util total
+          V = 1000 + N *((C*Tdias) + (K*Lf));//litros
+          //Profundidade útil mínima e máxima, por faixa de volume útil em m
+        
+          if(V<=6000){
+             hmin=1.20
+             hmax=2.20
+          }
+          if(6000<V<=10000){
+             hmin=1.50
+             hmax=2.50
+          }
+          if(V>10000){
+             hmin=1.80
+             hmax=2.80
+          }
+          //-------------------------------desenho projeto preliminar
+          const canvas = document.getElementById("canvas");
+          const ctx = canvas.getContext("2d");
+          ctx.beginPath();
+          var Vm=V*1000//Volume em cm3
+          if(document.getElementById('θ').value==="20"){
+            var espessura=20
+          }
+          if(document.getElementById('θ').value==="21"){
+            var espessura=21
+          }
+          if(document.getElementById('θ').value==="22"){
+            var espessura=22
+          }
+          if(document.getElementById('θ').value==="8"){
+            var espessura=8
+          }
+          if(document.getElementById('θ').value==="9"){
+            var espessura=9
+          }
+          if(document.getElementById('θ').value==="10"){
+            var espessura=10
+          }
+          
+          var hmin=hmin*100;//cm
+          var hmax=hmax*100;//cm
+          var A=Vm/hmin;//cm2
+          var b=Math.sqrt(A);//cm
+          var h=b;//cm
+          var r=Math.sqrt(A/Math.PI);//cm
+
+          ctx.clearRect(0, 0, 1000, 1000);
+          if(document.getElementById('Geometria dos tanques').value==="retangulo"){
+            ctx.strokeRect(50, 50, b, h);
+            ctx.strokeRect(50-espessura, 50-espessura, b+2*espessura, h+2*espessura);
+            ctx.strokeRect(150+b,50,b,hmin);
+            ctx.strokeRect(150+b-espessura,50-espessura,b+2*espessura,hmin+2*espessura)
+            
+            var registrando = pontosx.push(50,50+b,50+b,50,150+b,150+2*b,150+2*b,150+b);
+            var registrando = pontosy.push(50,50,50+h,50+h,50,50,50+hmin,50+hmin);
+          }
+          if(document.getElementById('Geometria dos tanques').value==="circulo"){
+            ctx.beginPath();
+            ctx.arc(50+r, 50+r, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(50+r, 50+r, r+espessura, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeRect(150+2*r,50,2*r,hmin);
+            ctx.strokeRect(150+2*r-espessura,50-espessura,2*r+2*espessura,hmin+2*espessura);
+            ctx.stroke();
+
+            var registrando = pontosx.push(50+r,r,163+2*r+espessura,163+4*r+espessura,163+4*r+espessura,163+2*r+espessura);
+            var registrando = pontosy.push(50+r,50,50,50+hmin,50+hmin);
+          }
+        }  
+        function entrar(){
+            grid=[];
+       snapvalue=0
+       do{
+        if(snapvalue%Output.value===0){
+        grid.push(snapvalue);
+        }
+        snapvalue=snapvalue+1
+       }while(snapvalue<1000);
+       
+    }
+        function sair(){
+    }
+        function moveu(){
+            var getXCoord = event.offsetX;
+            var getYCoord = event.offsetY;
+            var resultX = "X: " + getXCoord;
+            var resultY = " Y: " + getYCoord;
+            a.innerHTML= resultX + resultY;
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            ctx.font = "20px arial";
+            ctx.clearRect(0, 0, 1000, 1000);
+            var snapvalx = grid.reduce(function(prev, curr) {
+             return (Math.abs(curr - getXCoord) < Math.abs(prev - getXCoord) ? curr : prev);
+            });
+            var snapvaly = grid.reduce(function(prev, curr) {
+            return (Math.abs(curr - getYCoord) < Math.abs(prev - getYCoord) ? curr : prev);
+            });
+            if(document.getElementById('θ').value==="20"){
+            var espessura=20
+          }
+          if(document.getElementById('θ').value==="21"){
+            var espessura=21
+          }
+          if(document.getElementById('θ').value==="22"){
+            var espessura=22
+          }
+          if(document.getElementById('θ').value==="8"){
+            var espessura=8
+          }
+          if(document.getElementById('θ').value==="9"){
+            var espessura=9
+          }
+          if(document.getElementById('θ').value==="10"){
+             var espessura=10
+          }
+            snapx=snapvalx
+            snapy=snapvaly
+            if(click>0){
+            if(pontosx[4]<snapvalx+10 && pontosx[4]>snapvalx-10 && pontosy[3]<snapvaly+10 && pontosy[3]>snapvaly-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[4]-3,pontosy[3]+3);
+           ctx.lineTo(pontosx[4]+3,pontosy[3]-3);
+           ctx.moveTo(pontosx[4]+3,pontosy[3]+3);
+           ctx.lineTo(pontosx[4]-3,pontosy[3]-3);
+           ctx.stroke();
+            }else  if(pontosx[0]+pontosx[1]<snapvalx+10 && pontosx[0]+pontosx[1]>snapvalx-10 && pontosy[0]<snapvaly+10 && pontosy[0]>snapvaly-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[0]+pontosx[1]-3,pontosy[0]+3);
+           ctx.lineTo(pontosx[0]+pontosx[1]+3,pontosy[0]-3);
+           ctx.moveTo(pontosx[0]+pontosx[1]+3,pontosy[0]+3);
+           ctx.lineTo(pontosx[0]+pontosx[1]-3,pontosy[0]-3);
+           ctx.stroke();
+            }else if(pontosx[6]-10<snapvalx && snapvalx<pontosx[6]+10 && pontosy[6]-10<snapvaly && snapvaly<pontosy[6]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){ 
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[6]-3,pontosy[6]+3);
+           ctx.lineTo(pontosx[6]+3,pontosy[6]-3);
+           ctx.moveTo(pontosx[6]+3,pontosy[6]+3);
+           ctx.lineTo(pontosx[6]-3,pontosy[6]-3);
+           ctx.stroke();
+          }else if(pontosx[2]-10<snapvalx && snapvalx<pontosx[2]+10 && pontosy[2]-10<snapvaly && snapvaly<pontosy[2]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[2]-3,pontosy[2]+3);
+           ctx.lineTo(pontosx[2]+3,pontosy[2]-3);
+           ctx.moveTo(pontosx[2]+3,pontosy[2]+3);
+           ctx.lineTo(pontosx[2]-3,pontosy[2]-3);
+           ctx.stroke();
+          }else if(pontosx[1]-10<snapvalx && snapvalx<pontosx[1]+10 && pontosy[1]-10<snapvaly && snapvaly<pontosy[1]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[1]-3,pontosy[1]+3);
+           ctx.lineTo(pontosx[1]+3,pontosy[1]-3);
+           ctx.moveTo(pontosx[1]+3,pontosy[1]+3);
+           ctx.lineTo(pontosx[1]-3,pontosy[1]-3);
+           ctx.stroke();
+          }else{ 
+            ctx.strokeStyle="black";
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(snapvalx-3,snapvaly+3);
+           ctx.lineTo(snapvalx+3,snapvaly-3);
+           ctx.moveTo(snapvalx+3,snapvaly+3);
+           ctx.lineTo(snapvalx-3,snapvaly-3);
+           ctx.stroke();
+          }
+          cont=0
+           do{
+            if(document.getElementById('Geometria dos tanques').value==="retangulo"){
+
+            ctx.strokeRect(pontosx[4],pontosy[4]+26,20,10);
+           ctx.strokeRect(pontosx[4]+20,pontosy[4]+5,10,15+(pontosy[6]-pontosy[4]+30)/6);
+           ctx.clearRect(pontosx[4],pontosy[4]+26,21,9);
+
+           ctx.strokeRect(pontosx[5]-20,pontosy[5]+35,20,10);
+           ctx.strokeRect(pontosx[5]-30,pontosy[5]+5,10,25+(pontosy[6]-pontosy[4]+30)/6);
+           ctx.clearRect(pontosx[5]-21,pontosy[5]+36,21,9);
+
+           
+           ctx.strokeRect(pontosx[0],pontosy[0]+(pontosy[3]-pontosy[0])/2,20,10);
+           ctx.clearRect(pontosx[0]+1,pontosy[0]+1+(pontosy[3]-pontosy[0])/2,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]+20,pontosy[0]+(pontosy[3]-pontosy[0])/2+5, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+
+           ctx.strokeRect(pontosx[1]-20,pontosy[1]+(pontosy[3]-pontosy[0])/2,20,10);
+           ctx.clearRect(pontosx[1]-1-20,pontosy[1]+1+(pontosy[3]-pontosy[0])/2,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[1]-20,pontosy[1]+(pontosy[3]-pontosy[0])/2+5, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+
+           ctx.moveTo(pontosx[5]-35,pontosy[5]+5);
+           ctx.lineTo(pontosx[5]-35,pontosy[5]);
+           ctx.moveTo(pontosx[5]-38,pontosy[5]+5);
+           ctx.lineTo(pontosx[5]-32,pontosy[5]+5);
+           ctx.stroke(); 
+           ctx.fillText(`5`,pontosx[5]-50,pontosy[5]+20);
+
+           ctx.moveTo(pontosx[4]+35,pontosy[4]);
+           ctx.lineTo(pontosx[4]+35,pontosy[4]+35);
+           ctx.moveTo(pontosx[4]+32,pontosy[4]+35);
+           ctx.lineTo(pontosx[4]+38,pontosy[4]+35);
+           ctx.stroke();
+           ctx.fillText(`35`,pontosx[4]+35,pontosy[4]+20); 
+
+           ctx.moveTo(pontosx[5]-35,pontosy[5]+45);
+           ctx.lineTo(pontosx[5]-35,pontosy[5]);
+           ctx.moveTo(pontosx[5]-38,pontosy[5]+45);
+           ctx.lineTo(pontosx[5]-32,pontosy[5]+45);
+           ctx.stroke();
+           ctx.fillText(`45`,pontosx[5]-60,pontosy[5]+45); 
+
+
+           ctx.moveTo(pontosx[5]-10,pontosy[5]+45);
+           ctx.lineTo(pontosx[6]-10,pontosy[6]);
+           ctx.stroke(); 
+           ctx.moveTo(pontosx[5]-10+3,pontosy[5]+50);
+           ctx.lineTo(pontosx[5]-10-3,pontosy[5]+50);
+           ctx.lineTo(pontosx[5]-10,pontosy[5]+45);
+           ctx.fill();
+           ctx.moveTo(pontosx[6]-10+3,pontosy[6]-5);
+           ctx.lineTo(pontosx[6]-10-3,pontosy[6]-5);
+           ctx.lineTo(pontosx[6]-10,pontosy[6]);  
+           ctx.fill();
+           ctx.fillText(`${(pontosy[6])-(pontosy[5]+45)}`,(pontosx[6]-45),(pontosy[5]+45)+((pontosy[6])-(pontosy[5]+45))/2);
+
+              ctx.moveTo(pontosx[0],pontosy[0]);
+            ctx.lineTo(pontosx[1],pontosy[1]);
+            ctx.lineTo(pontosx[2],pontosy[2]);
+            ctx.lineTo(pontosx[3],pontosy[3]);
+            ctx.lineTo(pontosx[0],pontosy[0]);
+            ctx.stroke();
+          
+            ctx.fillText(Math.round(pontosx[1]-pontosx[0]),(pontosx[1]+pontosx[0])/2,pontosy[0]-espessura-10);
+            ctx.fillText(espessura,pontosx[1],pontosy[0]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]-espessura,pontosy[0]-espessura-10);
+            //cotas
+            ctx.moveTo(pontosx[0]-espessura,pontosy[0]-espessura-6);
+            ctx.lineTo(pontosx[1]+espessura,pontosy[1]-espessura-6);
+            ctx.moveTo(pontosx[0]-espessura,pontosy[0]-espessura-10);
+            ctx.lineTo(pontosx[0]-espessura,pontosy[0]-espessura-3);
+            ctx.moveTo(pontosx[0],pontosy[0]-espessura-10);
+            ctx.lineTo(pontosx[0],pontosy[0]-espessura-3);
+            ctx.moveTo(pontosx[1],pontosy[0]-espessura-10);
+            ctx.lineTo(pontosx[1],pontosy[0]-espessura-3);
+            ctx.moveTo(pontosx[1]+espessura,pontosy[0]-espessura-10);
+            ctx.lineTo(pontosx[1]+espessura,pontosy[0]-espessura-3);
+            
+            ctx.fillText(Math.round(pontosy[2]-pontosy[1]),pontosx[1]+espessura+10,(pontosy[1]+pontosy[2])/2);
+            ctx.fillText(espessura,pontosx[1]+espessura+10,pontosy[1]);
+            ctx.fillText(espessura,pontosx[1]+espessura+10,pontosy[2]+espessura);
+
+            ctx.moveTo(pontosx[1]+espessura+6,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[1]+espessura+6,pontosy[2]+espessura);
+            ctx.moveTo(pontosx[1]+espessura+3,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[1]+espessura+10,pontosy[1]-espessura);
+            ctx.moveTo(pontosx[1]+espessura+3,pontosy[1]);
+            ctx.lineTo(pontosx[1]+espessura+10,pontosy[1]);
+            ctx.moveTo(pontosx[1]+espessura+3,pontosy[2]);
+            ctx.lineTo(pontosx[1]+espessura+10,pontosy[2]);
+            ctx.moveTo(pontosx[1]+espessura+3,pontosy[2]+espessura);
+            ctx.lineTo(pontosx[1]+espessura+10,pontosy[2]+espessura);
+
+            ctx.moveTo(pontosx[0]-espessura,pontosy[0]-espessura);
+            ctx.lineTo(pontosx[1]+espessura,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[2]+espessura,pontosy[2]+espessura);
+            ctx.lineTo(pontosx[3]-espessura,pontosy[3]+espessura);
+            ctx.lineTo(pontosx[0]-espessura,pontosy[0]-espessura);
+            ctx.stroke();
+            
+            ctx.moveTo(pontosx[4],pontosy[4]);
+            ctx.lineTo(pontosx[5],pontosy[5]);
+            ctx.lineTo(pontosx[6],pontosy[6]);
+            ctx.lineTo(pontosx[7],pontosy[7]);
+            ctx.lineTo(pontosx[4],pontosy[4]);
+            ctx.stroke();
+          
+            ctx.fillText(Math.round(pontosx[5]-pontosx[4]),(pontosx[5]+pontosx[4])/2,pontosy[4]-espessura-10);
+            ctx.fillText(espessura,pontosx[5],pontosy[4]-espessura-10);
+            ctx.fillText(espessura,pontosx[4]-espessura,pontosy[4]-espessura-10);
+            //cotas
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura-6);
+            ctx.lineTo(pontosx[5]+espessura,pontosy[5]-espessura-6);
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[4]-espessura,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[4],pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[4],pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[5],pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[5],pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[5]+espessura,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[5]+espessura,pontosy[4]-espessura-3);
+            
+            ctx.fillText(Math.round(pontosy[6]-pontosy[5]),pontosx[5]+espessura+10,(pontosy[5]+pontosy[6])/2);
+            ctx.fillText(espessura,pontosx[5]+espessura+10,pontosy[5]);
+            ctx.fillText(espessura,pontosx[5]+espessura+10,pontosy[6]+espessura);
+
+            ctx.moveTo(pontosx[5]+espessura+6,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[5]+espessura+6,pontosy[6]+espessura);
+            ctx.moveTo(pontosx[5]+espessura+3,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[5]+espessura+10,pontosy[5]-espessura);
+            ctx.moveTo(pontosx[5]+espessura+3,pontosy[5]);
+            ctx.lineTo(pontosx[5]+espessura+10,pontosy[5]);
+            ctx.moveTo(pontosx[5]+espessura+3,pontosy[6]);
+            ctx.lineTo(pontosx[5]+espessura+10,pontosy[6]);
+            ctx.moveTo(pontosx[5]+espessura+3,pontosy[6]+espessura);
+            ctx.lineTo(pontosx[5]+espessura+10,pontosy[6]+espessura);
+
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura);
+            ctx.lineTo(pontosx[5]+espessura,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[6]+espessura,pontosy[6]+espessura);
+            ctx.lineTo(pontosx[7]-espessura,pontosy[7]+espessura);
+            ctx.lineTo(pontosx[4]-espessura,pontosy[4]-espessura);
+            ctx.stroke();
+            
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura,pontosy[6]+espessura+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[7]-espessura,pontosy[7]+espessura+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+80);
+            ctx.stroke();
+            
+            ctx.fillText(Math.round((pontosx[4]+pontosy[2]-pontosy[1])-(pontosx[4])),((pontosx[4]+pontosy[2]-pontosy[1])-(pontosx[4]))/2+(pontosx[4]),pontosy[4]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.fillText(espessura,pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1],pontosy[5]-espessura+(pontosy[7]-pontosy[4])+68);
+
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+74);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+74);
+            ctx.moveTo(pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.lineTo(pontosx[4]-espessura,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+78);
+            ctx.moveTo(pontosx[4],pontosy[4]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.lineTo(pontosx[4],pontosy[4]-espessura+(pontosy[7]-pontosy[4])+78);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1],pontosy[5]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1],pontosy[5]-espessura+(pontosy[7]-pontosy[4])+78);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+68);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+78);
+
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+6,pontosy[5]+(pontosy[7]-pontosy[4])+80-espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+6,pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+80-espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[5]+(pontosy[7]-pontosy[4])+80-espessura);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[5]+(pontosy[7]-pontosy[4])+80);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[6]+(pontosy[7]-pontosy[4])+80);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura);
+
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+80);
+            ctx.fillText((pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura)-(pontosy[5]+(pontosy[7]-pontosy[4])+80+espessura)-10,pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+80-((pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura)-(pontosy[5]+(pontosy[7]-pontosy[4])+80+espessura))/2);
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+80+espessura);
+
+            ctx.moveTo(pontosx[4],pontosy[4]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1],pontosy[5]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1],pontosy[6]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[7],pontosy[7]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4],pontosy[4]+(pontosy[7]-pontosy[4])+80);
+            ctx.stroke();
+
+            if(document.getElementById('camaras').value==="2"){
+          
+            ctx.moveTo(((pontosx[1]+pontosx[0])+espessura)/2,pontosy[0]);
+            ctx.lineTo(((pontosx[1]+pontosx[0])+espessura)/2,pontosy[3]);
+            ctx.stroke();
+
+            ctx.moveTo(((pontosx[1]+pontosx[0])-espessura)/2,pontosy[0]);
+            ctx.lineTo(((pontosx[1]+pontosx[0])-espessura)/2,pontosy[3]);
+            ctx.stroke();
+
+
+            ctx.moveTo((pontosx[5]+pontosx[4])/2+espessura/2,pontosy[4]);
+            ctx.lineTo((pontosx[5]+pontosx[4])/2+espessura/2,pontosy[7]);
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[5]+pontosx[4])/2-espessura/2,pontosy[4]);
+            ctx.lineTo((pontosx[5]+pontosx[4])/2-espessura/2,pontosy[7]);
+            ctx.stroke();
+            ctx.fillText("5x25",pontosx[4]+20+cont2*80,pontosy[4]+(pontosy[7]-pontosy[4])+80+10+55);
+
+            do{
+            ctx.strokeRect(pontosx[4]+20+cont2*80,pontosy[4]+(pontosy[7]-pontosy[4])+80+10,5,25);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[4]+(pontosy[7]-pontosy[4])+80+10);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+80+10);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+3,pontosy[4]+(pontosy[7]-pontosy[4])+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+80);
+            ctx.stroke();
+            ctx.fillText(10,pontosx[4]+pontosy[2]-pontosy[1]+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+80+20);
+            cont2=cont2+1
+            }while(cont2*100<((pontosx[4]+pontosy[2]-pontosy[1])-(pontosx[4])-50));
+            cont2=0
+
+            }
+            }
+            if(document.getElementById('Geometria dos tanques').value==="circulo"){
+            ctx.beginPath();
+            ctx.arc(pontosx[0], pontosy[0], pontosx[1], 0, 2 * Math.PI);
+            ctx.stroke();  
+            ctx.beginPath();
+            ctx.arc(pontosx[0], pontosy[0], pontosx[1]+espessura, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.strokeRect(pontosx[0]-pontosx[1],pontosy[0],20,10);
+           ctx.clearRect(pontosx[0]-pontosx[1],pontosy[0]+1,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]-pontosx[1]+20,pontosy[0]+5, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+
+           ctx.strokeRect(pontosx[0]+pontosx[1]-20,pontosy[0]+espessura+5,20,10);
+           ctx.clearRect(pontosx[0]+pontosx[1]-20,pontosy[0]+1+espessura+5,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]+pontosx[1]-20,pontosy[0]+5+espessura+5, 5, 0, 2 * Math.PI);
+           ctx.stroke();
+
+            ctx.strokeRect(pontosx[2],pontosy[1]+20,20,10);
+           ctx.strokeRect(pontosx[2]+20,pontosy[1]+5,10,20+(pontosy[3]-pontosy[2]+30)/6);
+           ctx.clearRect(pontosx[2],pontosy[1]+21,21,9);
+            
+           ctx.moveTo(pontosx[2]+38,pontosy[1]+30);
+           ctx.lineTo(pontosx[2]+38,pontosy[1]);
+           ctx.moveTo(pontosx[2]+41,pontosy[1]+30);
+           ctx.lineTo(pontosx[2]+35,pontosy[1]+30);
+           ctx.stroke();
+           ctx.fillText(`30`,pontosx[2]+41,pontosy[1]+20);
+           ctx.moveTo(pontosx[3]-38,pontosy[2]);
+           ctx.lineTo(pontosx[3]-38,pontosy[2]+5);
+           ctx.moveTo(pontosx[3]-41,pontosy[2]+5);
+           ctx.lineTo(pontosx[3]-35,pontosy[2]+5);
+           ctx.fillText(`5`,pontosx[3]-55,pontosy[2]+20);
+           ctx.stroke();
+
+          if(document.getElementById('camaras').value==="3"){
+            ctx.strokeRect(pontosx[3]-20,pontosy[2]+55,20,10);
+            ctx.strokeRect(pontosx[3]-30,pontosy[2]+5,10,25+(pontosy[3]-pontosy[2]+30)/6);
+            ctx.clearRect(pontosx[3]-21,pontosy[2]+56,21,9);
+            ctx.moveTo(pontosx[3]-38,pontosy[2]+5);
+            ctx.lineTo(pontosx[3]-38,pontosy[2]+65);
+            ctx.moveTo(pontosx[3]-41,pontosy[2]+65);
+            ctx.lineTo(pontosx[3]-35,pontosy[2]+65);
+            ctx.stroke();
+            ctx.fillText(`60`,pontosx[3]-65,pontosy[2]+50);
+          }else{
+           ctx.strokeRect(pontosx[3]-20,pontosy[2]+20,20,10);
+           ctx.strokeRect(pontosx[3]-30,pontosy[2]+5,10,20+(pontosy[3]-pontosy[2]+30)/6);
+           ctx.clearRect(pontosx[3]-21,pontosy[2]+21,21,9);
+          }
+
+            ctx.moveTo(pontosx[2],pontosy[1]);
+            ctx.lineTo(pontosx[3],pontosy[2]);
+            ctx.lineTo(pontosx[4],pontosy[3]);
+            ctx.lineTo(pontosx[5],pontosy[4]);
+            ctx.lineTo(pontosx[2],pontosy[1]);
+            ctx.stroke(); 
+            
+            ctx.fillText(Math.round(2*pontosx[1]),pontosx[0],pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]+pontosx[1],pontosy[0]-pontosx[1]-espessura-10);
+
+            ctx.moveTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-6);
+            ctx.lineTo(pontosx[0]+pontosx[1]+espessura,pontosy[0]-pontosx[1]-espessura-6);
+            ctx.moveTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]-pontosx[1],pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]-pontosx[1],pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]+pontosx[1],pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]+pontosx[1],pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]+pontosx[1]+espessura,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]+pontosx[1]+espessura,pontosy[0]-pontosx[1]-espessura-3);
+
+            ctx.fillText(Math.round(pontosx[3]-pontosx[2]),(pontosx[2]+pontosx[3])/2,pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[2]-espessura,pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[3],pontosy[1]-espessura-10);
+
+            ctx.moveTo(pontosx[2]-espessura,pontosy[1]-espessura-6);
+            ctx.lineTo(pontosx[3]+espessura,pontosy[2]-espessura-6);
+            ctx.moveTo(pontosx[2]-espessura,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[2]-espessura,pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[2],pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[2],pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[3],pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[3],pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[3]+espessura,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[3]+espessura,pontosy[1]-espessura-3);
+            
+            
+            ctx.fillText(espessura,pontosx[4]+espessura+10,pontosy[2]);
+            ctx.fillText(espessura,pontosx[4]+espessura+10,pontosy[3]+espessura);
+
+            ctx.moveTo(pontosx[3]+espessura+6,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[4]+espessura+6,pontosy[3]+espessura);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]-espessura);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[3]);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[3]);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[3]+espessura);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[3]+espessura);
+
+            ctx.fillText(espessura,pontosx[3]+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80);
+            ctx.fillText(espessura,pontosx[4]+espessura+3+10,pontosy[3]+(pontosy[3]-pontosy[1])+80+espessura);
+
+            ctx.moveTo(pontosx[2]-espessura,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[3]+espessura,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[4]+espessura,pontosy[3]+espessura);
+            ctx.lineTo(pontosx[5]-espessura,pontosy[4]+espessura);
+            ctx.lineTo(pontosx[2]-espessura,pontosy[1]-espessura);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[3]+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.lineTo(pontosx[4]+espessura+6,pontosy[3]+(pontosy[3]-pontosy[1])+80+espessura);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80);
+            ctx.moveTo(pontosx[4]+espessura+10,pontosy[3]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[4]+espessura+3,pontosy[3]+(pontosy[3]-pontosy[1])+80);
+            ctx.moveTo(pontosx[4]+espessura+10,pontosy[3]+(pontosy[3]-pontosy[1])+80+espessura);
+            ctx.lineTo(pontosx[4]+espessura+3,pontosy[3]+(pontosy[3]-pontosy[1])+80+espessura);
+
+            ctx.moveTo(pontosx[2],pontosy[1]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[3],pontosy[2]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[4],pontosy[3]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[5],pontosy[4]+(pontosy[3]-pontosy[1])+80);
+            ctx.lineTo(pontosx[2],pontosy[1]+(pontosy[3]-pontosy[1])+80);
+            ctx.stroke(); 
+            ctx.moveTo(pontosx[2]-espessura,pontosy[1]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.lineTo(pontosx[3]+espessura,pontosy[2]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.lineTo(pontosx[4]+espessura,pontosy[3]+(pontosy[3]-pontosy[1])+80+espessura);
+            ctx.lineTo(pontosx[5]-espessura,pontosy[4]+(pontosy[3]-pontosy[1])+80+espessura);
+            ctx.lineTo(pontosx[2]-espessura,pontosy[1]+(pontosy[3]-pontosy[1])+80-espessura);
+            ctx.stroke();
+
+            if(document.getElementById('camaras').value==="3"){
+            ctx.moveTo(pontosx[0]+espessura/2,pontosy[0]+pontosx[1]);
+            ctx.lineTo(pontosx[0]+espessura/2,pontosy[0]-pontosx[1]);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[0]-espessura/2,pontosy[0]+pontosx[1]);
+            ctx.lineTo(pontosx[0]-espessura/2,pontosy[0]-pontosx[1]);
+            ctx.stroke();
+            
+            ctx.moveTo(pontosx[0]+espessura/2,pontosy[0]-espessura/2);
+            ctx.lineTo(pontosx[0]+pontosx[1],pontosy[0]-espessura/2);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[0]+espessura/2,pontosy[0]+espessura/2);
+            ctx.lineTo(pontosx[0]+pontosx[1],pontosy[0]+espessura/2);
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[2]+pontosx[3])/2+espessura/2,pontosy[1])
+            ctx.lineTo((pontosx[2]+pontosx[3])/2+espessura/2,pontosy[3])
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[2]+pontosx[3])/2-espessura/2,pontosy[1])
+            ctx.lineTo((pontosx[2]+pontosx[3])/2-espessura/2,pontosy[3])
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[3]-38,pontosy[2]+65);
+            ctx.lineTo(pontosx[3]-38,pontosy[2]+30+(pontosy[3]-pontosy[2]+30)/6);
+            ctx.moveTo(pontosx[3]-35,pontosy[2]+30+(pontosy[3]-pontosy[2]+30)/6);
+            ctx.lineTo(pontosx[3]-41,pontosy[2]+30+(pontosy[3]-pontosy[2]+30)/6);
+            ctx.stroke();
+            ctx.fillText(`${Math.round((pontosy[2]+30+(pontosy[3]-pontosy[2]+30)/6)-(pontosy[2]+65))}`,pontosx[3]-65,pontosy[2]+30+(pontosy[3]-pontosy[2]+30)/6);
+
+            ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]+10)
+            ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]+10);
+            ctx.stroke();
+            ctx.fillText(10,pontosx[3]+espessura+10,pontosy[2]+20);
+            ctx.fillText(pontosy[3]-pontosy[2]-10,pontosx[4]+espessura+10,(pontosy[3]+pontosy[2])/2);
+            ctx.fillText(pontosy[3]-pontosy[2]-10,pontosx[3]+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80+(pontosy[3]-pontosy[2])/2);
+            ctx.fillText("5x40",(pontosx[2]+pontosx[3])/2+espessura/2+20+cont2*55,pontosy[1]+70);
+            ctx.fillText("5x50",pontosx[2]+20+cont2*55,pontosy[1]+(pontosy[3]-pontosy[1])+90+70);
+            do{//Adicionar cotas
+              ctx.strokeRect((pontosx[2]+pontosx[3])/2+espessura/2+20+cont2*55,pontosy[1]+10,5,40);
+              ctx.strokeRect(pontosx[2]+20+cont2*55,pontosy[1]+(pontosy[3]-pontosy[1])+90,5,50);
+              ctx.moveTo(pontosx[3]+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+10);
+              ctx.lineTo(pontosx[3]+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80+10);
+              ctx.stroke();
+              ctx.fillText(10,pontosx[3]+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+20);
+              cont2=cont2+1
+            }while(cont2*100<pontosx[1]);
+            cont2=0
+
+            }else{ctx.fillText(pontosy[3]-pontosy[2],pontosx[4]+espessura+10,(pontosy[3]+pontosy[2])/2);
+              ctx.fillText(pontosy[3]-pontosy[2],pontosx[3]+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80+(pontosy[3]-pontosy[2])/2);} 
+            
+            cont=cont+4
+            }
+            cont=cont+4
+            
+           }while(cont<8)//65 circulo e 45 retangulo
+        }if(document.getElementById('Geometria dos tanques').value==="circulo"){
+          var we=65
+        }else{var we=45}
+          if(V<=6000){
+             hmin=120+we
+             hmax=220+we
+          }
+          if(6000<V<=10000){
+             hmin=150+we
+             hmax=250+we
+          }
+          if(V>10000){
+             hmin=180+we
+             hmax=280+we
+          }
+            if(click<0){
+        Δx=(snapvalx-p1);
+        if(Δytest===1){
+        Δy1=(snapvaly-p2);
+        Δy2=0;
+        }
+        if(Δytest===-1){
+        Δy1=0;
+        Δy2=(snapvaly-p2);
+        } 
+           if(pontosx[4]<snapvalx+10 && pontosx[4]>snapvalx-10 && pontosy[3]<snapvaly+10 && pontosy[3]>snapvaly-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[4]-3,pontosy[3]+3);
+           ctx.lineTo(pontosx[4]+3,pontosy[3]-3);
+           ctx.moveTo(pontosx[4]+3,pontosy[3]+3);
+           ctx.lineTo(pontosx[4]-3,pontosy[3]-3);
+           ctx.stroke();
+          
+            }else  if(pontosx[0]+pontosx[1]<snapvalx+10 && pontosx[0]+pontosx[1]>snapvalx-10 && pontosy[0]<snapvaly+10 && pontosy[0]>snapvaly-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[0]+pontosx[1]-3,pontosy[0]+3);
+           ctx.lineTo(pontosx[0]+pontosx[1]+3,pontosy[0]-3);
+           ctx.moveTo(pontosx[0]+pontosx[1]+3,pontosy[0]+3);
+           ctx.lineTo(pontosx[0]+pontosx[1]-3,pontosy[0]-3);
+           ctx.stroke();
+            }else if(pontosx[6]-10<snapvalx && snapvalx<pontosx[6]+10 && pontosy[6]-10<snapvaly && snapvaly<pontosy[6]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){ 
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[6]-3,pontosy[6]+3);
+           ctx.lineTo(pontosx[6]+3,pontosy[6]-3);
+           ctx.moveTo(pontosx[6]+3,pontosy[6]+3);
+           ctx.lineTo(pontosx[6]-3,pontosy[6]-3);
+           ctx.stroke();
+          }else if(pontosx[2]-10<snapvalx && snapvalx<pontosx[2]+10 && pontosy[2]-10<snapvaly && snapvaly<pontosy[2]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[2]-3,pontosy[2]+3);
+           ctx.lineTo(pontosx[2]+3,pontosy[2]-3);
+           ctx.moveTo(pontosx[2]+3,pontosy[2]+3);
+           ctx.lineTo(pontosx[2]-3,pontosy[2]-3);
+           ctx.stroke();
+          }else if(pontosx[1]-10<snapvalx && snapvalx<pontosx[1]+10 && pontosy[1]-10<snapvaly && snapvaly<pontosy[1]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+           ctx.strokeStyle="green"; 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(pontosx[1]-3,pontosy[1]+3);
+           ctx.lineTo(pontosx[1]+3,pontosy[1]-3);
+           ctx.moveTo(pontosx[1]+3,pontosy[1]+3);
+           ctx.lineTo(pontosx[1]-3,pontosy[1]-3);
+           ctx.stroke();
+          }else{ 
+           ctx.clearRect(0, 0, 1000, 1000);
+           ctx.beginPath();
+           ctx.moveTo(snapvalx-3,snapvaly+3);
+           ctx.lineTo(snapvalx+3,snapvaly-3);
+           ctx.moveTo(snapvalx+3,snapvaly+3);
+           ctx.lineTo(snapvalx-3,snapvaly-3);
+           ctx.stroke();
+          }
+          cont=0
+
+           
+            if(document.getElementById('Geometria dos tanques').value==="retangulo"){
+
+        if(hmax<Δy2+pontosy[6]-pontosy[5]){ 
+          ctx.strokeStyle="red";
+          ctx.fillText(`Altura superior à altura máxima permitida em norma.`,50,50);
+        }
+        if(Δy2+pontosy[6]-pontosy[5]<hmin){
+          ctx.strokeStyle="red";
+          ctx.fillText(`Altura inferior à altura mínima permitida em norma.`,50,50);
+        }
+        if(pontosx[1]-pontosx[0]+Δx<80 || pontosx[6]-pontosx[4]+Δy2<80){
+          ctx.strokeStyle="red";
+          ctx.fillText(`Largura interna inferior à largura mínima permitida em norma (0,80m).`,50,60);
+        }
+       
+        if(hmax>Δy2+pontosy[6]-pontosy[4] && Δy2+pontosy[6]-pontosy[4]>hmin && ((pontosx[1]-pontosx[0]+Δx)>80 || (pontosx[6]-pontosx[4]+Δy2)>80)){ 
+          ctx.strokeStyle="green";
+        }
+
+
+           ctx.strokeRect(pontosx[0],pontosy[0]+(pontosy[3]-pontosy[0]+Δy1)/2,20,10);
+           ctx.clearRect(pontosx[0]+1,pontosy[0]+1+(pontosy[3]-pontosy[0]+Δy1)/2,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]+20,pontosy[0]+(pontosy[3]-pontosy[0]+Δy1)/2+5, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+
+           ctx.strokeRect(pontosx[1]-20+Δx,pontosy[1]+(pontosy[3]-pontosy[0]+Δy1)/2,20,10);
+           ctx.clearRect(pontosx[1]-1-20+Δx,pontosy[1]+1+(pontosy[3]-pontosy[0]+Δy1)/2,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[1]-20+Δx,pontosy[1]+(pontosy[3]-pontosy[0]+Δy1)/2+5, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+          
+           
+           ctx.strokeRect(pontosx[4]+Δx,pontosy[4]+25,20,10);
+           ctx.strokeRect(pontosx[4]+Δx+20,pontosy[4]+5,10,15+(pontosy[6]+Δy2-pontosy[4]+30)/6);
+           ctx.clearRect(pontosx[4]+Δx,pontosy[4]+26,21,9);
+
+           ctx.moveTo(pontosx[4]+Δx+35,pontosy[4]);
+           ctx.lineTo(pontosx[4]+Δx+35,pontosy[4]+35);
+           ctx.moveTo(pontosx[4]+Δx+32,pontosy[4]+35);
+           ctx.lineTo(pontosx[4]+Δx+38,pontosy[4]+35);
+           ctx.stroke();
+           ctx.fillText(`35`,pontosx[4]+Δx+35,pontosy[4]+20); 
+
+           ctx.moveTo(pontosx[5]+2*Δx-35,pontosy[5]+45);
+           ctx.lineTo(pontosx[5]+2*Δx-35,pontosy[5]);
+           ctx.moveTo(pontosx[5]+2*Δx-38,pontosy[5]+45);
+           ctx.lineTo(pontosx[5]+2*Δx-32,pontosy[5]+45);
+           ctx.stroke();
+           ctx.fillText(`45`,pontosx[5]+2*Δx-60,pontosy[5]+45); 
+
+           //-----
+
+           ctx.strokeRect(pontosx[5]+2*Δx-20,pontosy[5]+35,20,10);
+           ctx.strokeRect(pontosx[5]+2*Δx-30,pontosy[5]+5,10,25+(pontosy[6]+Δy2-pontosy[4]+30)/6);
+           ctx.clearRect(pontosx[5]+2*Δx-21,pontosy[5]+36,21,9);
+
+           ctx.moveTo(pontosx[5]+2*Δx-35,pontosy[5]+5);
+           ctx.lineTo(pontosx[5]+2*Δx-35,pontosy[5]);
+           ctx.moveTo(pontosx[5]+2*Δx-38,pontosy[5]+5);
+           ctx.lineTo(pontosx[5]+2*Δx-32,pontosy[5]+5);
+           ctx.stroke(); 
+           ctx.fillText(`5`,pontosx[5]+2*Δx-50,pontosy[5]+20);
+
+           ctx.moveTo(pontosx[5]-10+2*Δx,pontosy[5]+45);
+           ctx.lineTo(pontosx[6]-10+2*Δx,pontosy[6]+Δy2);
+           ctx.stroke(); 
+           ctx.moveTo(pontosx[5]-10+2*Δx+3,pontosy[5]+50);
+           ctx.lineTo(pontosx[5]-10+2*Δx-3,pontosy[5]+50);
+           ctx.lineTo(pontosx[5]-10+2*Δx,pontosy[5]+45);
+           ctx.fill();
+           ctx.moveTo(pontosx[6]-10+2*Δx+3,pontosy[6]-5+Δy2);
+           ctx.lineTo(pontosx[6]-10+2*Δx-3,pontosy[6]-5+Δy2);
+           ctx.lineTo(pontosx[6]-10+2*Δx,pontosy[6]+Δy2);  
+           ctx.fill();
+           ctx.fillText(`${(pontosy[6]+Δy2)-(pontosy[5]+45)}`,(pontosx[6]-45+2*Δx),(pontosy[5]+45)+((pontosy[6]+Δy2)-(pontosy[5]+45))/2);
+
+            ctx.moveTo(pontosx[0],pontosy[0]);
+            ctx.lineTo(pontosx[1]+Δx,pontosy[1]);
+            ctx.lineTo(pontosx[2]+Δx,pontosy[2]+Δy1);
+            ctx.lineTo(pontosx[3],pontosy[3]+Δy1);
+            ctx.lineTo(pontosx[0],pontosy[0]);
+            ctx.stroke();
+
+            
+            ctx.moveTo(pontosx[4]+Δx,pontosy[4]);
+            ctx.lineTo(pontosx[5]+Δx*2,pontosy[5]);
+            ctx.lineTo(pontosx[6]+Δx*2,pontosy[6]+Δy2);
+            ctx.lineTo(pontosx[7]+Δx,pontosy[7]+Δy2);
+            ctx.lineTo(pontosx[4]+Δx,pontosy[4]);
+            ctx.stroke();
+             
+          
+            ctx.fillText(Math.round(pontosx[1]-pontosx[0])+Δx,(pontosx[1]+pontosx[0])/2+Δx/2,pontosy[0]-espessura-10);
+            ctx.fillText(espessura,pontosx[1]+Δx,pontosy[0]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]-espessura,pontosy[0]-espessura-10);
+
+            ctx.fillText(Math.round(pontosx[5]-pontosx[4])+Δx,(pontosx[5]+pontosx[4])/2+1.5*Δx,pontosy[4]-espessura-10);
+            ctx.fillText(espessura,pontosx[5]+2*Δx,pontosy[4]-espessura-10);
+            ctx.fillText(espessura,pontosx[4]-espessura+Δx,pontosy[4]-espessura-10);
+            //cotas
+
+            ctx.moveTo(pontosx[0]-espessura,pontosy[4]-espessura-6);
+            ctx.lineTo(pontosx[1]+espessura+Δx,pontosy[5]-espessura-6);
+            ctx.moveTo(pontosx[0]-espessura,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[0]-espessura,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[0],pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[0],pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[1]+Δx,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[1]+Δx,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[1]+Δx+espessura,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[1]+Δx+espessura,pontosy[4]-espessura-3);
+
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura-6);
+            ctx.lineTo(pontosx[5]+espessura+2*Δx,pontosy[5]-espessura-6);
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[4]+Δx,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[4]+Δx,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[5]+2*Δx,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[5]+2*Δx,pontosy[4]-espessura-3);
+            ctx.moveTo(pontosx[5]+2*Δx+espessura,pontosy[4]-espessura-10);
+            ctx.lineTo(pontosx[5]+2*Δx+espessura,pontosy[4]-espessura-3);
+            
+            ctx.fillText(Math.round(pontosy[2]-pontosy[1])+Δy1,pontosx[1]+espessura+10+Δx,(pontosy[1]+pontosy[2])/2+Δy1/2);
+            ctx.fillText(espessura,pontosx[1]+espessura+10+Δx,pontosy[1]);
+            ctx.fillText(espessura,pontosx[1]+espessura+10+Δx,pontosy[2]+espessura+Δy1);
+
+            ctx.fillText(Math.round(pontosy[6]-pontosy[5])+Δy2,pontosx[5]+espessura+10+2*Δx,(pontosy[5]+pontosy[6])/2+Δy2/2);
+            ctx.fillText(espessura,pontosx[5]+espessura+10+2*Δx,pontosy[5]);
+            ctx.fillText(espessura,pontosx[5]+espessura+10+2*Δx,pontosy[6]+espessura+Δy2);
+
+            ctx.moveTo(pontosx[1]+espessura+6+Δx,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[1]+espessura+6+Δx,pontosy[2]+espessura+Δy1);
+            ctx.moveTo(pontosx[1]+espessura+3+Δx,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[1]+espessura+10+Δx,pontosy[1]-espessura);
+            ctx.moveTo(pontosx[1]+espessura+3+Δx,pontosy[1]);
+            ctx.lineTo(pontosx[1]+espessura+10+Δx,pontosy[1]);
+            ctx.moveTo(pontosx[1]+espessura+3+Δx,pontosy[2]+Δy1);
+            ctx.lineTo(pontosx[1]+espessura+10+Δx,pontosy[2]+Δy1);
+            ctx.moveTo(pontosx[1]+espessura+3+Δx,pontosy[2]+espessura+Δy1);
+            ctx.lineTo(pontosx[1]+espessura+10+Δx,pontosy[2]+espessura+Δy1);
+
+            ctx.moveTo(pontosx[5]+espessura+6+2*Δx,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[5]+espessura+6+2*Δx,pontosy[6]+espessura+Δy2);
+            ctx.moveTo(pontosx[5]+espessura+3+2*Δx,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[5]+espessura+10+2*Δx,pontosy[5]-espessura);
+            ctx.moveTo(pontosx[5]+espessura+3+2*Δx,pontosy[5]);
+            ctx.lineTo(pontosx[5]+espessura+10+2*Δx,pontosy[5]);
+            ctx.moveTo(pontosx[5]+espessura+3+2*Δx,pontosy[6]+Δy2);
+            ctx.lineTo(pontosx[5]+espessura+10+2*Δx,pontosy[6]+Δy2);
+            ctx.moveTo(pontosx[5]+espessura+3+2*Δx,pontosy[6]+espessura+Δy2);
+            ctx.lineTo(pontosx[5]+espessura+10+2*Δx,pontosy[6]+espessura+Δy2);
+
+            ctx.moveTo(pontosx[0]-espessura,pontosy[0]-espessura);
+            ctx.lineTo(pontosx[1]+espessura+Δx,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[2]+espessura+Δx,pontosy[2]+espessura+Δy1);
+            ctx.lineTo(pontosx[3]-espessura,pontosy[3]+espessura+Δy1);
+            ctx.lineTo(pontosx[0]-espessura,pontosy[0]-espessura);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura);
+            ctx.lineTo(pontosx[5]+espessura+2*Δx,pontosy[5]-espessura);
+            ctx.lineTo(pontosx[6]+espessura+2*Δx,pontosy[6]+espessura+Δy2);
+            ctx.lineTo(pontosx[7]-espessura+Δx,pontosy[7]+espessura+Δy2);
+            ctx.lineTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura,pontosy[6]+espessura+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.lineTo(pontosx[7]-espessura+Δx,pontosy[7]+espessura+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.lineTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.stroke();
+
+            ctx.fillText(Math.round((pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1)-(pontosx[4]+Δx)),((pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1)-(pontosx[4]+Δx))/2+(pontosx[4]+Δx),pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.fillText(espessura,pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+74);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+74);
+            ctx.moveTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.lineTo(pontosx[4]-espessura+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+78);
+            ctx.moveTo(pontosx[4]+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.lineTo(pontosx[4]+Δx,pontosy[4]-espessura+(pontosy[7]-pontosy[4])+Δy2+78);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+78);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+68);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura,pontosy[5]-espessura+(pontosy[7]-pontosy[4])+Δy2+78);
+
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+6,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80-espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+6,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80-espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80-espessura);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura);
+
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.fillText((pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura)-(pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80+espessura)-10,pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80-((pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura)-(pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80+espessura))/2);
+            ctx.fillText(espessura,pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80+espessura);
+
+            ctx.moveTo(pontosx[4]+Δx,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1,pontosy[5]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1,pontosy[6]+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.lineTo(pontosx[7]+Δx,pontosy[7]+(pontosy[7]-pontosy[4])+2*Δy2+80);
+            ctx.lineTo(pontosx[4]+Δx,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.stroke();
+
+            
+            if(document.getElementById('camaras').value==="2"){//Adicionar cotas
+              
+
+            ctx.moveTo(((pontosx[1]+pontosx[0])+Δx+espessura)/2,pontosy[0]);
+            ctx.lineTo(((pontosx[1]+pontosx[0])+Δx+espessura)/2,pontosy[3]+Δy1);
+            ctx.stroke();
+
+            ctx.moveTo(((pontosx[1]+pontosx[0])+Δx-espessura)/2,pontosy[0]);
+            ctx.lineTo(((pontosx[1]+pontosx[0])+Δx-espessura)/2,pontosy[3]+Δy1);
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[5]+pontosx[4])/2+1.5*Δx+espessura/2,pontosy[4]);
+            ctx.lineTo((pontosx[5]+pontosx[4])/2+1.5*Δx+espessura/2,pontosy[7]+Δy2);
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[5]+pontosx[4])/2+1.5*Δx-espessura/2,pontosy[4]);
+            ctx.lineTo((pontosx[5]+pontosx[4])/2+1.5*Δx-espessura/2,pontosy[7]+Δy2);
+            ctx.stroke();
+
+            ctx.fillText("5x25",pontosx[4]+Δx+20+cont2*80,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80+10+55);
+
+            do{
+            ctx.strokeRect(pontosx[4]+Δx+20+cont2*80,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80+10,5,25);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80+10);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80+10);
+            ctx.moveTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+3,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.lineTo(pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80);
+            ctx.stroke();
+            ctx.fillText(10,pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1+espessura+10,pontosy[4]+(pontosy[7]-pontosy[4])+Δy2+80+20);
+            cont2=cont2+1
+            }while(cont2*100<((pontosx[4]+pontosy[2]-pontosy[1]+Δx+Δy1)-(pontosx[4]+Δx)));
+            cont2=0
+            
+          }
+
+            }
+            if(document.getElementById('Geometria dos tanques').value==="circulo"){
+        if(pontosx[1]+Δx<55){
+          ctx.strokeStyle="red";
+          ctx.fillText(`Diâmetro interno inferior ao especificado em norma (1,10m).`,50,70);
+        }      
+        if(hmax<Δy2+pontosy[3]-pontosy[1]){ 
+          ctx.strokeStyle="red";
+          ctx.fillText(`Altura superior à altura máxima permitida em norma.`,50,50);
+        }
+        if(hmin>Δy2+pontosy[3]-pontosy[1]){ 
+          ctx.strokeStyle="red"
+          ctx.fillText(`Altura inferior à altura mínima permitida em norma.`,50,50);
+        }
+        if(hmax>Δy2+pontosy[3]-pontosy[1] && hmin<Δy2+pontosy[3]-pontosy[1] && pontosx[1]+Δx>55){
+          ctx.strokeStyle="green"
+        }
+           ctx.strokeRect(pontosx[2]+2*Δx,pontosy[1]+20,20,10);
+           ctx.strokeRect(pontosx[2]+2*Δx+20,pontosy[1]+5,10,20+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+           ctx.clearRect(pontosx[2]+2*Δx,pontosy[1]+21,21,9);
+
+           ctx.moveTo(pontosx[2]+2*Δx+38,pontosy[1]+30);
+           ctx.lineTo(pontosx[2]+2*Δx+38,pontosy[1]);
+           ctx.moveTo(pontosx[2]+2*Δx+41,pontosy[1]+30);
+           ctx.lineTo(pontosx[2]+2*Δx+35,pontosy[1]+30);
+          
+           ctx.fillText(`30`,pontosx[2]+2*Δx+41,pontosy[1]+20);
+           ctx.moveTo(pontosx[3]+4*Δx-38,pontosy[2]);
+           ctx.lineTo(pontosx[3]+4*Δx-38,pontosy[2]+5);
+           ctx.moveTo(pontosx[3]+4*Δx-41,pontosy[2]+5);
+           ctx.lineTo(pontosx[3]+4*Δx-35,pontosy[2]+5);
+           ctx.fillText(`5`,pontosx[3]+4*Δx-55,pontosy[2]+20);
+           ctx.stroke();
+//---------Continuar aqui, Cota do volume util
+          if(document.getElementById('camaras').value==="3"){
+            ctx.strokeRect(pontosx[3]+4*Δx-20,pontosy[2]+55,20,10);
+            ctx.strokeRect(pontosx[3]+4*Δx-30,pontosy[2]+5,10,25+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+            ctx.clearRect(pontosx[3]+4*Δx-21,pontosy[2]+56,21,9);
+            ctx.moveTo(pontosx[3]+4*Δx-38,pontosy[2]+5);
+            ctx.lineTo(pontosx[3]+4*Δx-38,pontosy[2]+65);
+            ctx.moveTo(pontosx[3]+4*Δx-41,pontosy[2]+65);
+            ctx.lineTo(pontosx[3]+4*Δx-35,pontosy[2]+65);
+            ctx.stroke();
+            ctx.fillText(`60`,pontosx[3]+4*Δx-65,pontosy[2]+50);
+            ctx.moveTo(pontosx[3]+4*Δx-38,pontosy[2]+65);
+            ctx.lineTo(pontosx[3]+4*Δx-38,pontosy[2]+30+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+            ctx.moveTo(pontosx[3]+4*Δx-35,pontosy[2]+30+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+            ctx.lineTo(pontosx[3]+4*Δx-41,pontosy[2]+30+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+            ctx.stroke();
+            ctx.fillText(`${Math.round((pontosy[2]+30+(pontosy[3]+Δy2-pontosy[2]+30)/6)-(pontosy[2]+65))}`,pontosx[3]+4*Δx-65,pontosy[2]+30+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+          }else{
+           ctx.strokeRect(pontosx[3]+4*Δx-20,pontosy[2]+20,20,10);
+           ctx.strokeRect(pontosx[3]+4*Δx-30,pontosy[2]+5,10,20+(pontosy[3]+Δy2-pontosy[2]+30)/6);
+           ctx.clearRect(pontosx[3]+4*Δx-21,pontosy[2]+21,21,9);
+          }
+           
+
+           ctx.strokeRect(pontosx[0]-pontosx[1],pontosy[0]+Δx,20,10);
+           ctx.clearRect(pontosx[0]-pontosx[1],pontosy[0]+1+Δx,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]-pontosx[1]+20,pontosy[0]+5+Δx, 5, 0, 2 * Math.PI);
+           ctx.stroke(); 
+
+           ctx.strokeRect(pontosx[0]+pontosx[1]+2*Δx-20,pontosy[0]+Δx+espessura+5,20,10);
+           ctx.clearRect(pontosx[0]+pontosx[1]+2*Δx-20,pontosy[0]+1+Δx+espessura+5,20,9);
+           ctx.beginPath();
+           ctx.arc(pontosx[0]+pontosx[1]-20+2*Δx,pontosy[0]+5+Δx+espessura+5, 5, 0, 2 * Math.PI);
+           ctx.stroke();
+          
+            ctx.beginPath();
+            ctx.arc(pontosx[0]+Δx, pontosy[0]+Δx, pontosx[1]+Δx, 0, 2 * Math.PI);
+            ctx.stroke();  
+            ctx.beginPath();
+            ctx.arc(pontosx[0]+Δx, pontosy[0]+Δx, pontosx[1]+espessura+Δx, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            ctx.moveTo(pontosx[2]+2*Δx,pontosy[1]);
+            ctx.lineTo(pontosx[3]+4*Δx,pontosy[2]);
+            ctx.lineTo(pontosx[4]+4*Δx,pontosy[3]+Δy2);
+            ctx.lineTo(pontosx[5]+2*Δx,pontosy[4]+Δy2);
+            ctx.lineTo(pontosx[2]+2*Δx,pontosy[1]);
+            ctx.stroke(); 
+
+            ctx.moveTo(pontosx[2]+2*Δx,pontosy[1]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[3]+4*Δx,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[4]+4*Δx,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[5]+2*Δx,pontosy[4]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[2]+2*Δx,pontosy[1]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.stroke(); 
+            ctx.moveTo(pontosx[2]-espessura+2*Δx,pontosy[1]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.lineTo(pontosx[3]+espessura+4*Δx,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.lineTo(pontosx[4]+espessura+4*Δx,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2+espessura);
+            ctx.lineTo(pontosx[5]-espessura+2*Δx,pontosy[4]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2+espessura);
+            ctx.lineTo(pontosx[2]-espessura+2*Δx,pontosy[1]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.stroke(); 
+
+            ctx.moveTo(pontosx[3]+4*Δx+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.lineTo(pontosx[4]+4*Δx+espessura+6,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2+espessura);
+            ctx.moveTo(pontosx[3]+4*Δx+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.lineTo(pontosx[3]+4*Δx+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2-espessura);
+            ctx.moveTo(pontosx[3]+4*Δx+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[3]+4*Δx+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.moveTo(pontosx[4]+4*Δx+espessura+10,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.lineTo(pontosx[4]+4*Δx+espessura+3,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.moveTo(pontosx[4]+4*Δx+espessura+10,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2+espessura);
+
+            ctx.fillText(espessura,pontosx[3]+4*Δx+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2);
+            ctx.fillText(espessura,pontosx[4]+4*Δx+espessura+3+10,pontosy[3]+Δy2+(pontosy[3]-pontosy[1])+80+Δy2+espessura);
+
+            ctx.fillText(Math.round(2*pontosx[1])+Δx,pontosx[0]+Δx,pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[0]+pontosx[1]+2*Δx,pontosy[0]-pontosx[1]-espessura-10);
+
+            ctx.moveTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-6);
+            ctx.lineTo(pontosx[0]+pontosx[1]+espessura+2*Δx,pontosy[0]-pontosx[1]-espessura-6);
+            ctx.moveTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]-pontosx[1]-espessura,pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]-pontosx[1],pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]-pontosx[1],pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]+pontosx[1]+2*Δx,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]+pontosx[1]+2*Δx,pontosy[0]-pontosx[1]-espessura-3);
+            ctx.moveTo(pontosx[0]+pontosx[1]+espessura+2*Δx,pontosy[0]-pontosx[1]-espessura-10);
+            ctx.lineTo(pontosx[0]+pontosx[1]+espessura+2*Δx,pontosy[0]-pontosx[1]-espessura-3);
+
+            ctx.fillText(Math.round(pontosx[3]-pontosx[2])+Δx,(pontosx[2]+pontosx[3])/2+3*Δx,pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[2]-espessura+2*Δx,pontosy[1]-espessura-10);
+            ctx.fillText(espessura,pontosx[3]+4*Δx,pontosy[1]-espessura-10);
+
+            ctx.moveTo(pontosx[2]-espessura+2*Δx,pontosy[1]-espessura-6);
+            ctx.lineTo(pontosx[3]+espessura+4*Δx,pontosy[2]-espessura-6);
+            ctx.moveTo(pontosx[2]-espessura+2*Δx,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[2]-espessura+2*Δx,pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[2]+2*Δx,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[2]+2*Δx,pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[3]+4*Δx,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[3]+4*Δx,pontosy[1]-espessura-3);
+            ctx.moveTo(pontosx[3]+espessura+4*Δx,pontosy[1]-espessura-10);
+            ctx.lineTo(pontosx[3]+espessura+4*Δx,pontosy[1]-espessura-3);
+            
+            ctx.fillText(pontosy[3]-pontosy[2]+Δy2,pontosx[4]+espessura+10+4*Δx,(pontosy[3]+pontosy[2])/2+Δy2/2);
+            ctx.fillText(espessura,pontosx[4]+espessura+10+4*Δx,pontosy[2]);
+            ctx.fillText(espessura,pontosx[4]+espessura+10+4*Δx,pontosy[3]+espessura+Δy2);
+
+            ctx.moveTo(pontosx[3]+espessura+6+4*Δx,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[4]+espessura+6+4*Δx,pontosy[3]+espessura+Δy2);
+            ctx.moveTo(pontosx[3]+espessura+10+4*Δx,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[3]+espessura+3+4*Δx,pontosy[2]-espessura);
+            ctx.moveTo(pontosx[3]+espessura+10+4*Δx,pontosy[2]);
+            ctx.lineTo(pontosx[3]+espessura+3+4*Δx,pontosy[2]);
+            ctx.moveTo(pontosx[3]+espessura+10+4*Δx,pontosy[3]+Δy2);
+            ctx.lineTo(pontosx[3]+espessura+3+4*Δx,pontosy[3]+Δy2);
+            ctx.moveTo(pontosx[3]+espessura+10+4*Δx,pontosy[3]+espessura+Δy2);
+            ctx.lineTo(pontosx[3]+espessura+3+4*Δx,pontosy[3]+espessura+Δy2);
+
+            ctx.moveTo(pontosx[2]-espessura+2*Δx,pontosy[1]-espessura);
+            ctx.lineTo(pontosx[3]+espessura+4*Δx,pontosy[2]-espessura);
+            ctx.lineTo(pontosx[4]+espessura+4*Δx,pontosy[3]+espessura+Δy2);
+            ctx.lineTo(pontosx[5]-espessura+2*Δx,pontosy[4]+espessura+Δy2);
+            ctx.lineTo(pontosx[2]-espessura+2*Δx,pontosy[1]-espessura);
+            ctx.stroke();
+
+            if(document.getElementById('camaras').value==="3"){
+            ctx.moveTo(pontosx[0]+Δx+espessura/2,pontosy[0]+pontosx[1]+2*Δx);
+            ctx.lineTo(pontosx[0]+Δx+espessura/2,pontosy[0]-pontosx[1]);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[0]+Δx-espessura/2,pontosy[0]+pontosx[1]+2*Δx);
+            ctx.lineTo(pontosx[0]+Δx-espessura/2,pontosy[0]-pontosx[1]);
+            ctx.stroke();
+            
+            ctx.moveTo(pontosx[0]+Δx+espessura/2,pontosy[0]+Δx-espessura/2);
+            ctx.lineTo(pontosx[0]+pontosx[1]+2*Δx,pontosy[0]+Δx-espessura/2);
+            ctx.stroke();
+
+            ctx.moveTo(pontosx[0]+Δx+espessura/2,pontosy[0]+Δx+espessura/2);
+            ctx.lineTo(pontosx[0]+pontosx[1]+2*Δx,pontosy[0]+Δx+espessura/2);
+            ctx.stroke();
+            
+            ctx.moveTo((pontosx[2]+pontosx[3])/2+3*Δx+espessura/2,pontosy[1])
+            ctx.lineTo((pontosx[2]+pontosx[3])/2+3*Δx+espessura/2,pontosy[3]+Δy2)
+            ctx.stroke();
+
+            ctx.moveTo((pontosx[2]+pontosx[3])/2+3*Δx-espessura/2,pontosy[1])
+            ctx.lineTo((pontosx[2]+pontosx[3])/2+3*Δx-espessura/2,pontosy[3]+Δy2)
+            ctx.moveTo(pontosx[3]+espessura+10+4*Δx,pontosy[2]+10)
+            ctx.lineTo(pontosx[3]+espessura+3+4*Δx,pontosy[2]+10);
+            ctx.stroke();
+            ctx.fillText(10,pontosx[3]+espessura+10+4*Δx,pontosy[2]+20);
+
+            ctx.moveTo(pontosx[3]+4*Δx+espessura+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2+10);
+            ctx.lineTo(pontosx[3]+4*Δx+espessura+3,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2+10);
+            ctx.stroke();
+            ctx.fillText(10,pontosx[3]+4*Δx+espessura+3+10,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2+20);
+            ctx.fillText(pontosy[3]-pontosy[2]+Δy2-10,pontosx[3]+4*Δx+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2+(pontosy[3]-pontosy[2]+Δy2)/2);
+            ctx.fillText("5x25",(pontosx[2]+pontosx[3])/2+espessura/2+20+cont2*55+3*Δx,pontosy[1]+80);
+              ctx.fillText("5x25",pontosx[2]+2*Δx+20+cont2*55,pontosy[1]+(pontosy[3]-pontosy[1])+90+Δy2+60);
+            do{
+              ctx.strokeRect((pontosx[2]+pontosx[3])/2+espessura/2+20+cont2*55+3*Δx,pontosy[1]+10,5,25);
+              ctx.strokeRect(pontosx[2]+2*Δx+20+cont2*55,pontosy[1]+(pontosy[3]-pontosy[1])+90+Δy2,5,40);
+              cont2=cont2+1
+            }while(cont2*100<pontosx[1]+Δx);
+            cont2=0
+            }else{ctx.fillText(pontosy[3]-pontosy[2]+Δy2,pontosx[3]+4*Δx+espessura+6,pontosy[2]+(pontosy[3]-pontosy[1])+80+Δy2+(pontosy[3]-pontosy[2]+Δy2)/2);}
+            }
+            }
+      }
+      function clicar(){
+            var getXCoord = event.offsetX;
+            var getYCoord = event.offsetY;
+            var resultX = snapx;
+            var resultY = snapy; 
+            p1=snapx
+            p2=snapy
+            
+            contclick=contclick+1
+            if(click===-1){
+              click=click*-1
+            }
+            if(click===1 && pontosx[2]-10<snapx && snapx<pontosx[2]+10 && pontosy[2]-10<snapy && snapy<pontosy[2]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+             Δytest=1
+             click=click*-1
+             if(contclick>1){
+              
+              pontosx[1]=pontosx[1]+Δx
+              pontosx[2]=pontosx[2]+Δx
+              pontosx[4]=pontosx[4]+Δx
+              pontosx[5]=pontosx[5]+2*Δx
+              pontosx[6]=pontosx[6]+2*Δx
+              pontosx[7]=pontosx[7]+Δx
+
+              pontosy[2]=pontosy[2]+Δy1
+              pontosy[3]=pontosy[3]+Δy1
+             }
+            }
+            if(click===1 && pontosx[6]-10<snapx && snapx<pontosx[6]+10 && pontosy[6]-10<snapy && snapy<pontosy[6]+10 && document.getElementById('Geometria dos tanques').value==="retangulo"){
+             Δytest=-1
+             click=click*-1
+             if(contclick>1){
+              pontosy[6]=pontosy[6]+Δy2
+              pontosy[7]=pontosy[7]+Δy2
+              }
+             
+            }
+            if(click===1 && pontosx[0]+pontosx[1]<snapx+10 && pontosx[0]+pontosx[1]>snapx-10 && pontosy[0]<snapy+10 && pontosy[0]>snapy-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+              Δytest=1
+              click=click*-1
+              if(contclick>1){
+                pontosx[0]=pontosx[0]+Δx/2
+                pontosx[1]=pontosx[1]+Δx/2
+                pontosy[0]=pontosy[0]+Δx/2
+
+                pontosx[2]=pontosx[2]+Δx
+                pontosx[3]=pontosx[3]+2*Δx
+                pontosx[4]=pontosx[4]+2*Δx
+                pontosx[5]=pontosx[5]+Δx
+
+              }
+            }
+            if(click===1 && pontosx[4]<snapx+10 && pontosx[4]>snapx-10 && pontosy[3]<snapy+10 && pontosy[3]>snapy-10  &&  document.getElementById('Geometria dos tanques').value==="circulo"){
+             Δytest=-1
+             click=click*-1
+             if(contclick>1){
+              pontosy[4]=pontosy[4]+Δy2
+              pontosy[3]=pontosy[3]+Δy2    
+            }
+            }
+
+       }
+    </script>
+</body>
+</html>
